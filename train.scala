@@ -6,9 +6,7 @@
 
 val rawCouponListTrain = sc.textFile("/Users/kevin/Desktop/Coupon_Purchase_Prediction/coupon_list_train.csv")
 
-//val categories:List[String] = List("Food", "Spa", "Hair salon", "Nail and eye salon", "Beauty", "Relaxation", "Delivery service", "Gift card", "Other coupon", "Leisure", "Hotel and Japanese hotel", "Lesson")
 case class MatchDataCoupon(couponID: Double, categName: Double, discountRate: Double, listPrice: Double, discountPrice: Double, dispPeriod: Double, validPeriod: Double, usableDate: Array[Double])
-//case class Coupon_ID_Index(realCouponID: String, couponID: Double)
 
 def parseCategory(category: String): Double = {
 			category match {
@@ -34,7 +32,6 @@ val noheader1 = rawCouponListTrain.filter(x => !isHeader_1(x)).zipWithIndex
 
 val data1 = noheader1.map { line =>
 	val values = line._1.split(',')
-	//var categName : Array[Double] = new Array[Double](categories.size)
 	val couponID = line._2.toDouble
 	val discountRate = if (values(2) != "") values(2).toDouble else -1.0
 	val listPrice = if (values(3) != "") values(3).toDouble else -1.0
@@ -43,8 +40,6 @@ val data1 = noheader1.map { line =>
 	val validPeriod = if (values(10) != "") values(10).toDouble else -1.0
 	val usableDate = values.slice(11,20).map(s => if (s == "") -1.0 else s.toDouble)
 	val categName = parseCategory(values(1))
-	//var i = -1
-	//categories.foreach{y => i+=1; categName(i) = if(y == values(1)) 1.0 else 0.0}
 	MatchDataCoupon(couponID, categName, discountRate, listPrice, discountPrice, dispPeriod, validPeriod, usableDate)
 }
 
@@ -55,7 +50,6 @@ val referenceTable1 = noheader1.map{ line =>
 	val couponID = line._2.toDouble
 	val realCouponID = values(23)
 	(realCouponID, couponID)
-	//Coupon_ID_Index(realCouponID, couponID)
 }
 
 referenceTable1.cache()
@@ -66,7 +60,6 @@ def isHeader_2(line: String) = line.contains("REG_DATE")
 
 val noheader2 = rawUserData.filter(x => !isHeader_2(x)).zipWithIndex
 case class MatchDataUser(userID: Double, age: Double, sex: Double)
-//case class User_ID_Index(realUserID: String, userID: Double)
 
 def parse_1(line: (String, Long)) = {
 	val pieces = line._1.split(',')
@@ -80,7 +73,6 @@ def parse_1_1(line: (String, Long)) = {
 	val pieces = line._1.split(',')
 	val userID = line._2.toDouble
 	val realUserID = pieces(5)
-	//User_ID_Index(realUserID, userID)
 	(realUserID, userID)
 }
 
@@ -116,40 +108,27 @@ data3.cache()
 val rdd2 = data2.map {
 	x => (x.userID, (x.age, x.sex))
 }	
-// rdd2 = RDD[(userID, (age, sex))]
-//		  RDD[(Double, (Double, Double))]
 
 val INT_rdd3 = data3.map {
 	x => (x.userID, (x.couponID, x.purchaseCount))
 }
-// INT_rdd3 = RDD[(userID, (couponID, purchaseCount))]
-//			  RDD[(String, (String, Double))]
 
 val rdd3 = INT_rdd3.join(referenceTable2).map {
 	x => (x._2._1._1, (x._2._1._2, x._1, x._2._2))}.join(referenceTable1).map {
 	y => (y._2._1._3, (y._2._2, y._2._1._1))
 }
-// rdd3 = RDD[(userID, couponID, purchaseCount)] 
-//		  RDD[(Double, Double, Double)]
 
 val joinedrdd23 = rdd3.join(rdd2).map {
     x => (x._2._1._1, (x._1, x._2._1._2, x._2._2._1, x._2._2._2))
 }
-// joinedrdd23 = RDD[(couponID, (userID, purchaseCount, age, sex))]
-//				 RDD[(Double, (Double, Double, Double, Double))]
 
 val rdd1 = data1.map {
   x => (x.couponID, (x.categName, x.discountRate, x.listPrice, x.discountPrice, x.dispPeriod, x.validPeriod, x.usableDate))
 }
 
-// rdd1 = RDD[(couponID, (categName, discountRate, listPrice, discountPrice, dispPeriod, validPeriod, usableDate))]
-//		  RDD[(Double, (Double, Double, Double, Double, Double, Double, Array[Double]))]
-
 val joinedrdd = joinedrdd23.join(rdd1).map {
 	x => (x._2._1._1, x._2._1._3, x._2._1._4, x._1, x._2._1._2, x._2._2._1, x._2._2._2, x._2._2._3, x._2._2._4, x._2._2._5, x._2._2._6, x._2._2._7)
 }
-// joinedrdd = RDD[(userID, age, sex, couponID, purchaseCount, categName, discountRate, listPrice, discountPrice, dispPeriod, validPeriod, usableDate)]
-// 			   RDD[(Double, Double, Double, Double, Double, Double, Double, Double, Double, Double, Double, Array[Double])]
 
 val sortedRDD = joinedrdd.sortBy(_._1)
 
@@ -169,9 +148,6 @@ def couponAdder(line: (Double, Array[(Double, Double, Double, Double, Double, Do
 
 val trainingData = resortedRDD.map(line => couponAdder(line)).flatMapValues(x => x).map(x => (x._1, x._2._1, x._2._2, x._2._3, x._2._4, x._2._5,
  				x._2._6, x._2._8, x._2._9, x._2._10, x._2._12))
-// RDD[(userID, age, sex, couponID, purchaseCount, categName, discountRate, discountPrice, dispPeriod, validPeriod, nextCouponID)]
-// RDD[(Double, Double, Double, Double, Double, Double, Double, Double, Double, Double, Double)]
-
 trainingData.cache()
 
 /*
