@@ -198,3 +198,5 @@ val quantileCalculationStrategy: QuantileStrategy = org.apache.spark.mllib.tree.
 val strategy = new Strategy(Algo.Classification, impurity, maxDepth, numClasses, maxBins, quantileCalculationStrategy, categoricalFeaturesInfo, 1, 0.0, maxMemoryInMB, 1, false, 10);
 
 val model = DecisionTree.train(trainData, strategy)
+
+System.exit(0)
