@@ -4,7 +4,7 @@
 ----------------------------------------------------------------------
 */
 
-val rawCouponListTrain = sc.textFile("/Users/kevin/Desktop/Coupon_Purchase_Prediction/coupon_list_train.csv")
+val rawCouponListTrain = sc.textFile(".../Coupon_Purchase_Prediction/data/coupon_list_train.csv")
 
 case class MatchDataCoupon(couponID: Double, categName: Double, discountRate: Double, listPrice: Double, discountPrice: Double, dispPeriod: Double, validPeriod: Double, usableDate: Array[Double])
 
@@ -54,7 +54,7 @@ val referenceTable1 = noheader1.map{ line =>
 
 referenceTable1.cache()
 
-val rawUserData = sc.textFile("/Users/kevin/Desktop/Coupon_Purchase_Prediction/user_list.csv")
+val rawUserData = sc.textFile(".../Coupon_Purchase_Prediction/user_list.csv")
 
 def isHeader_2(line: String) = line.contains("REG_DATE")
 
@@ -83,7 +83,7 @@ data2.cache()
 referenceTable2.cache()
 
 
-val rawCouponDetailTrain = sc.textFile("/Users/kevin/Desktop/Coupon_Purchase_Prediction/coupon_detail_train.csv")
+val rawCouponDetailTrain = sc.textFile(".../Coupon_Purchase_Prediction/coupon_detail_train.csv")
 def isHeader_3(line: String) = line.contains("ITEM_COUNT")
 val noheader3 = rawCouponDetailTrain.filter(x => !isHeader_3(x))
 case class MatchDataUserCoupon(userID: String, couponID: String, purchaseCount: Double)
